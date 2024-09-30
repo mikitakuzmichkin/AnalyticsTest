@@ -37,12 +37,13 @@ public class AnalyticService : IDisposable
             {
                 StartSendTimeOut().Forget();
             }
+            Save(_eventPackage, _EVENT_PACKAGE_KEY);
         }
         else
         {
             _additionalEventPackage.Add(newEvent);
+            Save(_additionalEventPackage, _ADDINIONAL_EVENT_PACKAGE_KEY);
         }
-        Save();
     }
 
     public void ForceSend()
@@ -113,40 +114,36 @@ public class AnalyticService : IDisposable
             }
         }
         _additionalEventPackage = new JArray();
-        Save();
+        SaveAll();
     }
 
-    private void Save()
+    private void SaveAll()
     {
-        if (_eventPackage != null && _eventPackage.Count > 0)
-        {
-            var eventPackageString = _eventPackage.ToString();
-            Debug.Log("player prefs event package save: \n" + eventPackageString.ToString());
-            PlayerPrefs.SetString(_EVENT_PACKAGE_KEY, eventPackageString);
-        }
-        else
-        {
-            if (PlayerPrefs.HasKey(_EVENT_PACKAGE_KEY))
-            {
-                PlayerPrefs.DeleteKey(_EVENT_PACKAGE_KEY);
-            }
-        }
-        
-        if (_additionalEventPackage != null && _additionalEventPackage.Count > 0)
-        {
-            var additionalEventPackageString = _additionalEventPackage.ToString();
-            Debug.Log("player prefs additional event package save: \n" + additionalEventPackageString.ToString());
-            PlayerPrefs.SetString(_ADDINIONAL_EVENT_PACKAGE_KEY, additionalEventPackageString);
-        }
-        else
-        {
-            if (PlayerPrefs.HasKey(_ADDINIONAL_EVENT_PACKAGE_KEY))
-            {
-                PlayerPrefs.DeleteKey(_ADDINIONAL_EVENT_PACKAGE_KEY);
-            }
-        }
-        
+        Save(_eventPackage, _EVENT_PACKAGE_KEY, false);
+        Save(_additionalEventPackage, _ADDINIONAL_EVENT_PACKAGE_KEY, false);
         PlayerPrefs.Save();
+    }
+
+    private void Save(JArray package, string key, bool autoSave = true)
+    {
+        if (package != null && package.Count > 0)
+        {
+            var packageString = package.ToString();
+            Debug.Log($"player prefs {key} save: \n" + packageString);
+            PlayerPrefs.SetString(key, packageString);
+        }
+        else
+        {
+            if (PlayerPrefs.HasKey(key))
+            {
+                PlayerPrefs.DeleteKey(key);
+            }
+        }
+
+        if (autoSave)
+        {
+            PlayerPrefs.Save();
+        }
     }
 
     private void Load()
